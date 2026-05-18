@@ -19,6 +19,7 @@ from mcp.server import Server
 from mcp.types import ImageContent, TextContent, Tool
 
 from .client import FreeFeedAPIError, FreeFeedAuthError, FreeFeedClient
+from .filters import slim_response
 
 # Load environment variables
 load_dotenv()
@@ -1543,6 +1544,15 @@ async def _handle_tool_get_group_info(client: FreeFeedClient, arguments: Any) ->
     return await client.get_group_info(arguments["group_name"])
 
 
+# Tools whose responses should be slimmed to reduce token consumption
+_SLIM_TOOLS = frozenset({
+    "get_timeline",
+    "get_directs",
+    "get_post",
+    "search_posts",
+    "get_group_timeline",
+})
+
 # Tool handler dispatch map
 _TOOL_HANDLERS = {
     "get_timeline": _handle_tool_timeline,
@@ -1601,6 +1611,8 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent | ImageConten
             result = result_dict
 
         result = _add_post_urls(result, client.base_url)
+        if name in _SLIM_TOOLS:
+            result = slim_response(result)
         elapsed_ms = (time.monotonic() - start_time) * 1000
         logger.info(MCP_TOOL_SUCCESS_LOG, name, elapsed_ms)
         return [
