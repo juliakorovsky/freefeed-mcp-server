@@ -63,11 +63,18 @@ def _slim_comment(comment: dict[str, Any], username_map: dict[str, str]) -> dict
     return slimmed
 
 
-def slim_response(data: Any, keep_attachments: bool = False) -> Any:
+def slim_response(
+    data: Any,
+    keep_comments: bool = False,
+    keep_attachments: bool = False,
+) -> Any:
     """Strip unnecessary fields from a FreeFeed API response.
 
     Resolves createdBy user IDs to usernames, converts likes/comments arrays
     to counts, and drops subscribers/subscriptions/users/timelines arrays.
+
+    keep_comments: include full comment bodies (use for get_post; omit for timelines)
+    keep_attachments: include attachments array (use for get_post_attachments)
     """
     if not isinstance(data, dict):
         return data
@@ -81,11 +88,12 @@ def slim_response(data: Any, keep_attachments: bool = False) -> Any:
     elif isinstance(posts, list):
         result["posts"] = [_slim_post(p, username_map) for p in posts if isinstance(p, dict)]
 
-    comments = data.get("comments")
-    if isinstance(comments, list):
-        result["comments"] = [
-            _slim_comment(c, username_map) for c in comments if isinstance(c, dict)
-        ]
+    if keep_comments:
+        comments = data.get("comments")
+        if isinstance(comments, list):
+            result["comments"] = [
+                _slim_comment(c, username_map) for c in comments if isinstance(c, dict)
+            ]
 
     if keep_attachments and "attachments" in data:
         result["attachments"] = data["attachments"]

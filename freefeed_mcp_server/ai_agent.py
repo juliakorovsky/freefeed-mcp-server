@@ -375,7 +375,7 @@ def _register_post_tool(agent: Agent) -> None:
             opt_out_response = _check_user_opt_out(username, user_profile, ctx)
             if opt_out_response:
                 return opt_out_response
-        return slim_response(_add_post_urls(result, ctx.deps.base_url))
+        return slim_response(_add_post_urls(result, ctx.deps.base_url), keep_comments=True)
 
 
 def _register_profile_tool(agent: Agent) -> None:

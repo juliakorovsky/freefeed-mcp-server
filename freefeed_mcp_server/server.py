@@ -1612,7 +1612,7 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent | ImageConten
 
         result = _add_post_urls(result, client.base_url)
         if name in _SLIM_TOOLS:
-            result = slim_response(result)
+            result = slim_response(result, keep_comments=(name == "get_post"))
         elapsed_ms = (time.monotonic() - start_time) * 1000
         logger.info(MCP_TOOL_SUCCESS_LOG, name, elapsed_ms)
         return [
