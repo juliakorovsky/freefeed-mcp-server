@@ -594,17 +594,28 @@ class FreeFeedClient:
 
     # Post methods
 
-    async def get_post(self, post_id: str) -> Dict[str, Any]:
+    async def get_post(
+        self,
+        post_id: str,
+        max_comments: Union[str, int] = "all",
+        max_likes: Union[str, int] = "all",
+    ) -> Dict[str, Any]:
         """Get a specific post.
 
         Args:
             post_id: Post ID
+            max_comments: Max comments to return ("all" or a numeric limit)
+            max_likes: Max likes to return ("all" or a numeric limit)
 
         Returns:
             Post data with comments
         """
         url = self._api_url(f"posts/{post_id}")
-        response = await self.client.get(url, headers=self._get_headers())
+        response = await self.client.get(
+            url,
+            headers=self._get_headers(),
+            params={"maxComments": max_comments, "maxLikes": max_likes},
+        )
         response.raise_for_status()
         return response.json()
 

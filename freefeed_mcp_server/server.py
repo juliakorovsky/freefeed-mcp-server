@@ -666,13 +666,29 @@ async def list_tools() -> list[Tool]:
         # Post tools
         Tool(
             name="get_post",
-            description="Get a specific post by ID with all comments",
+            description="Get a specific post by ID with comments and likes",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "post_id": {
                         "type": "string",
                         "description": "Post ID",
+                    },
+                    "max_comments": {
+                        "description": 'Max comments to return. Use "all" (default) for all comments, or a number to limit (shows first + last boundary comments and omits the middle).',
+                        "default": "all",
+                        "oneOf": [
+                            {"type": "string", "enum": ["all"]},
+                            {"type": "integer", "minimum": 1},
+                        ],
+                    },
+                    "max_likes": {
+                        "description": 'Max likes to return. Use "all" (default) for all likes, or a number to limit.',
+                        "default": "all",
+                        "oneOf": [
+                            {"type": "string", "enum": ["all"]},
+                            {"type": "integer", "minimum": 1},
+                        ],
                     },
                 },
                 "required": ["post_id"],
@@ -1152,7 +1168,11 @@ async def _handle_tool_directs(client: FreeFeedClient, arguments: Any) -> Any:
 
 async def _handle_tool_get_post(client: FreeFeedClient, arguments: Any) -> Any:
     """Handle get_post tool."""
-    result = await client.get_post(arguments["post_id"])
+    result = await client.get_post(
+        arguments["post_id"],
+        max_comments=arguments.get("max_comments", "all"),
+        max_likes=arguments.get("max_likes", "all"),
+    )
     user_map = _build_user_map(result)
     post = result.get("posts") if isinstance(result, dict) else None
     if isinstance(post, dict):

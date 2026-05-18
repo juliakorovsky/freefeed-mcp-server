@@ -352,9 +352,17 @@ def _register_search_tool(agent: Agent) -> None:
 
 def _register_post_tool(agent: Agent) -> None:
     @agent.tool
-    async def get_post(ctx: RunContext[AssistantDeps], post_id: str) -> dict[str, Any]:
+    async def get_post(
+        ctx: RunContext[AssistantDeps],
+        post_id: str,
+        max_comments: str | int = "all",
+        max_likes: str | int = "all",
+    ) -> dict[str, Any]:
+        """Get a specific post by ID. max_comments and max_likes can be "all" or a positive integer."""
         logger.info("assistant_tool request_id=%s tool=get_post", ctx.deps.request_id)
-        result = await ctx.deps.client.get_post(post_id)
+        result = await ctx.deps.client.get_post(
+            post_id, max_comments=max_comments, max_likes=max_likes
+        )
         user_map = _build_user_map(result)
         post = result.get("posts") if isinstance(result, dict) else None
         if isinstance(post, dict):
